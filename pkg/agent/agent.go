@@ -1,13 +1,14 @@
 package agent
 
 import (
+	"github.com/bstchow/go-chess-server/internal/database"
+	"github.com/bstchow/go-chess-server/pkg/corenet"
+	"github.com/bstchow/go-chess-server/pkg/logging"
+	"github.com/bstchow/go-chess-server/pkg/matcher"
+	"github.com/bstchow/go-chess-server/pkg/session"
+	"github.com/bstchow/go-chess-server/pkg/utils"
+
 	"github.com/gorilla/websocket"
-	"github.com/yelaco/go-chess-server/internal/database"
-	"github.com/yelaco/go-chess-server/pkg/corenet"
-	"github.com/yelaco/go-chess-server/pkg/logging"
-	"github.com/yelaco/go-chess-server/pkg/matcher"
-	"github.com/yelaco/go-chess-server/pkg/session"
-	"github.com/yelaco/go-chess-server/pkg/utils"
 	"go.uber.org/zap"
 )
 

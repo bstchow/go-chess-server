@@ -5,9 +5,10 @@ import (
 	"log"
 	"sync"
 
+	"github.com/bstchow/go-chess-server/internal/game"
+	"github.com/bstchow/go-chess-server/pkg/logging"
+
 	"github.com/gorilla/websocket"
-	"github.com/yelaco/go-chess-server/internal/game"
-	"github.com/yelaco/go-chess-server/pkg/logging"
 	"go.uber.org/zap"
 )
 

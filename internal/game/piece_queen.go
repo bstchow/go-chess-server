@@ -2,8 +2,6 @@ package game
 
 import (
 	"math"
-
-	"github.com/yelaco/go-chess-server/pkg/config"
 )
 
 /*
@@ -54,7 +52,7 @@ func (q *queen) canMove(board *board, start *spot, end *spot) bool {
 			j--
 		}
 
-		if i < config.BoardLen && j < config.BoardLen {
+		if i < 8 && j < 8 {
 			if board.boxes[i][j].piece != nil {
 				return false
 			}

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/yelaco/go-chess-server/internal/database"
+	"github.com/bstchow/go-chess-server/internal/database"
 )
 
 func handlerUsersCreate(w http.ResponseWriter, r *http.Request) {

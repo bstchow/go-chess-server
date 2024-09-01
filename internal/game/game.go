@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/yelaco/go-chess-server/pkg/logging"
+	"github.com/bstchow/go-chess-server/pkg/logging"
 )
 
 type GameStatus string

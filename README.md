@@ -24,65 +24,13 @@ The go-chess-server project is a backend server application designed to manage c
 
 ## How to run
 
-### Client
-
-For the client side, I made a CLI for testing purpose. After the server and database are up and running, you can run the ```client.go``` file in the ```test``` folder
-```console
-$ cd test
-$ go run test.go
-```
-
-Here is a video that showcase all the functionalities of the CLI
-
-[client.webm](https://github.com/yelaco/go-chess-server/assets/100106895/d88f310b-b207-459a-b139-d11a64390293)
-
 ### Server
 
 **Docker**
 
-Clone the repository and run the command from the root of the project. This will automatically pull the Docker image for this project and the PostgreSQL database to set up the environment using Docker Compose.
-```console
-$ docker compose up
-```
+** The Docker setup has not been tested after changes from forked repo**
 
-You can also modify the ```docker-compose.yml``` to build from source instead
-```yml
-services:
-  app:
-    build: .
-    container_name: go-chess-server
-    ports:
-      - "7202:7202"
-      - "7201:7201"
-    environment:
-      - DATABASE_URL=postgresql://server:chessserver@db:5432/chess
-    depends_on:
-      - db
-```
-If you do it this way, you will also need a config file for the server to run
-```console
-$ mkdir .go-server-chess
-$ vim config.json
-```
-For example
-```json
-{
-    "host": {
-        "address": "localhost",
-        "game_server_port": "7201",
-        "rest_server_port": "7202"
-    },
-    "database": {
-        "name": "postgres",
-        "host": "localhost",
-        "user": "username",
-        "password": "password"
-    },
-    "game": {
-        "matching_timeout": 30
-    }
-}
-```
+###
 
 ## API
 

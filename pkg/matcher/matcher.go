@@ -2,12 +2,14 @@ package matcher
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
-	"github.com/yelaco/go-chess-server/pkg/config"
-	"github.com/yelaco/go-chess-server/pkg/logging"
-	"github.com/yelaco/go-chess-server/pkg/session"
+	"github.com/bstchow/go-chess-server/internal/env"
+	"github.com/bstchow/go-chess-server/pkg/logging"
+	"github.com/bstchow/go-chess-server/pkg/session"
+
 	"go.uber.org/zap"
 )
 
@@ -82,7 +84,9 @@ func (m *Matcher) EnterQueue(player *session.Player, connID string) {
 Matcher pushes player out of the matching queue after a timeout if there aren't no matches available.
 */
 func (m *Matcher) leaveQueueIfTimeout(player *session.Player, connID string) {
-	time.Sleep(config.MatchingTimeout)
+	timeout_i, _ := strconv.Atoi(env.GetEnv("MATCHING_TIMEOUT"))
+	Timeout := time.Duration(timeout_i) * time.Second
+	time.Sleep(Timeout)
 	if player == nil {
 		return
 	}

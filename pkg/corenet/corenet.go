@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/bstchow/go-chess-server/internal/env"
+	"github.com/bstchow/go-chess-server/pkg/logging"
+
 	"github.com/gorilla/websocket"
-	"github.com/yelaco/go-chess-server/pkg/config"
-	"github.com/yelaco/go-chess-server/pkg/logging"
 	"go.uber.org/zap"
 )
 
@@ -23,8 +24,9 @@ type Message struct {
 }
 
 func NewWebSocketServer() *WebSocketServer {
+	Port := env.GetEnv("WS_PORT")
 	return &WebSocketServer{
-		address: "0.0.0.0:" + config.Port,
+		address: "0.0.0.0:" + Port,
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -82,6 +84,6 @@ func (s *WebSocketServer) Start() error {
 			s.messageHandler(conn, &msg, &connID)
 		}
 	})
-	logging.Info("websocket server started", zap.String("port", config.Port))
+	logging.Info("websocket server started", zap.String("Address", s.address))
 	return http.ListenAndServe(s.address, nil)
 }

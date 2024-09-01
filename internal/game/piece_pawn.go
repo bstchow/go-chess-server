@@ -3,7 +3,7 @@ package game
 import (
 	"math"
 
-	"github.com/yelaco/go-chess-server/pkg/logging"
+	"github.com/bstchow/go-chess-server/pkg/logging"
 )
 
 /*

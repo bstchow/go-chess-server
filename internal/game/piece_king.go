@@ -3,8 +3,7 @@ package game
 import (
 	"math"
 
-	"github.com/yelaco/go-chess-server/pkg/config"
-	"github.com/yelaco/go-chess-server/pkg/logging"
+	"github.com/bstchow/go-chess-server/pkg/logging"
 )
 
 /*
@@ -129,7 +128,7 @@ func (k *king) canCastling(board *board, start *spot, end *spot) bool {
 			i--
 		}
 
-		if i > -1 && i < config.BoardLen {
+		if i > -1 && i < 8 {
 			if board.boxes[i][j].piece != nil {
 				return false
 			} else {
@@ -142,8 +141,8 @@ func (k *king) canCastling(board *board, start *spot, end *spot) bool {
 	}
 
 	for _, theSpot := range inBetweens {
-		for x := 0; x < config.BoardLen; x++ {
-			for y := 0; y < config.BoardLen; y++ {
+		for x := 0; x < 8; x++ {
+			for y := 0; y < 8; y++ {
 				box := board.boxes[x][y]
 
 				// no piece

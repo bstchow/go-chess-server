@@ -3,7 +3,8 @@ package database
 import (
 	"errors"
 
-	"github.com/yelaco/go-chess-server/pkg/utils"
+	"github.com/bstchow/go-chess-server/pkg/utils"
+
 	"golang.org/x/crypto/bcrypt"
 )
 

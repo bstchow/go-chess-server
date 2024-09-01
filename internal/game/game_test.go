@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yelaco/go-chess-server/pkg/utils"
+	"github.com/bstchow/go-chess-server/pkg/utils"
 )
 
 func generatePlayerIds() [2]string {

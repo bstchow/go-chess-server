@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/yelaco/go-chess-server/internal/database"
+	"github.com/bstchow/go-chess-server/internal/database"
 )
 
 /*

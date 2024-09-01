@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
-	"github.com/yelaco/go-chess-server/pkg/config"
-	"github.com/yelaco/go-chess-server/pkg/logging"
+	"github.com/bstchow/go-chess-server/pkg/logging"
+
 	"go.uber.org/zap"
 )
 
@@ -14,7 +14,8 @@ func StartRESTServer(port string) error {
 	http.HandleFunc("POST /api/login", handlerLogin)
 	http.HandleFunc("GET /api/sessions", handlerSessionGet)
 	http.HandleFunc("GET /api/sessions/{sessionid}", handlerSessionGetFromID)
-	logging.Info("rest server started", zap.String("port", config.RESTPort))
+
+	logging.Info("rest server started", zap.String("port", port))
 
 	return http.ListenAndServe(":"+port, nil)
 }

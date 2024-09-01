@@ -1,15 +1,20 @@
 package main
 
 import (
-	"github.com/yelaco/go-chess-server/internal/api"
-	"github.com/yelaco/go-chess-server/internal/database"
-	"github.com/yelaco/go-chess-server/pkg/agent"
-	"github.com/yelaco/go-chess-server/pkg/config"
-	"github.com/yelaco/go-chess-server/pkg/logging"
+	"github.com/bstchow/go-chess-server/internal/api"
+	"github.com/bstchow/go-chess-server/internal/database"
+	"github.com/bstchow/go-chess-server/internal/env"
+	"github.com/bstchow/go-chess-server/pkg/agent"
+	"github.com/bstchow/go-chess-server/pkg/logging"
+
 	"go.uber.org/zap"
 )
 
 func main() {
+	if !env.ValidateExpectedEnv() {
+		logging.Fatal("missing expected environment variables")
+	}
+
 	agent := agent.NewAgent()
 	database.InitDB()
 	defer database.CloseDB()
@@ -22,7 +27,8 @@ func main() {
 	}()
 
 	go func() {
-		if err := api.StartRESTServer(config.RESTPort); err != nil {
+		RESTPort := env.GetEnv("REST_PORT")
+		if err := api.StartRESTServer(RESTPort); err != nil {
 			logging.Fatal("rest server failed to start", zap.Error(err))
 		}
 	}()

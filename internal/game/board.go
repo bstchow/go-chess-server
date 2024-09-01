@@ -1,7 +1,5 @@
 package game
 
-import "github.com/yelaco/go-chess-server/pkg/config"
-
 type spot struct {
 	piece piece
 	x     int
@@ -45,7 +43,7 @@ func initBoard() *board {
 	b.boxes[6][7].piece = &knight{white: false}
 	b.boxes[7][7].piece = &rook{white: false}
 
-	for i := range config.BoardLen {
+	for i := range 8 {
 		b.boxes[i][1].piece = &pawn{white: true}
 		b.boxes[i][6].piece = &pawn{white: false}
 	}
