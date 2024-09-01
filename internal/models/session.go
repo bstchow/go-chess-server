@@ -1,16 +1,21 @@
-package database
+package models
 
 import (
 	"encoding/json"
 	"log"
+
+	"gorm.io/gorm"
 )
 
+// TODO: Migrate to using GORM for all database interactions.
 type Session struct {
-	SessionID string   `json:"session_id"`
-	Player1ID string   `json:"player1_id"`
-	Player2ID string   `json:"player2_id"`
-	Moves     []string `json:"moves"`
+	gorm.Model
+	SessionID string   `json:"session_id" gorm:"unique"`
+	Player1ID string   `json:"player1_id" gorm:"index"`
+	Player2ID string   `json:"player2_id" gorm:"index"`
+	Moves     []string `json:"moves" gorm:"type:text[]"`
 }
+
 
 func GetSessionByID(sessionID string) (Session, error) {
 	var session Session

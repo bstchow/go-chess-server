@@ -1,16 +1,19 @@
-package database
+package models
 
 import (
 	"errors"
 
 	"github.com/bstchow/go-chess-server/pkg/utils"
+	"gorm.io/gorm"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
+// TODO: Migrate to using GORM for all database interactions.
 type User struct {
-	PlayerID string `json:"player_id"`
-	Username string `json:"username"`
+	gorm.Model
+	PlayerID string `json:"player_id" gorm:"unique"`
+	Username string `json:"username" gorm:"unique"`
 	Password string `json:"password"`
 }
 

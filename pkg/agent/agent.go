@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"github.com/bstchow/go-chess-server/internal/database"
+	"github.com/bstchow/go-chess-server/internal/models"
 	"github.com/bstchow/go-chess-server/pkg/corenet"
 	"github.com/bstchow/go-chess-server/pkg/logging"
 	"github.com/bstchow/go-chess-server/pkg/matcher"
@@ -61,7 +61,7 @@ func (a *Agent) handleSessionGameOver(s *session.GameSession, sessionID string) 
 		player.Conn.Close()
 	}
 	gameMoves := s.Game.GetAllMoves()
-	if _, err := database.InsertSession(sessionID, playerIDs[0], playerIDs[1], gameMoves); err != nil {
+	if _, err := models.InsertSession(sessionID, playerIDs[0], playerIDs[1], gameMoves); err != nil {
 		logging.Error("coulnd't save game", zap.Error(err))
 	}
 	session.CloseSession(sessionID)

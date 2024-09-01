@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bstchow/go-chess-server/internal/database"
+	"github.com/bstchow/go-chess-server/internal/models"
 )
 
 func handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +21,7 @@ func handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUser, err := database.CreateUser(params.Username, params.Password)
+	newUser, err := models.CreateUser(params.Username, params.Password)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create user: "+err.Error())
 		return

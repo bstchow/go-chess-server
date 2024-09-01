@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/bstchow/go-chess-server/internal/database"
+	"github.com/bstchow/go-chess-server/internal/models"
 )
 
 /*
@@ -16,7 +16,7 @@ func handlerSessionGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionIDs, err := database.GetSessionsByPlayerID(player_id)
+	sessionIDs, err := models.GetSessionsByPlayerID(player_id)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid player id")
 	}
@@ -30,7 +30,7 @@ HTTP Handler for when a user wants to get a match record with a specific sesssio
 func handlerSessionGetFromID(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.PathValue("sessionid")
 
-	session, err := database.GetSessionByID(sessionID)
+	session, err := models.GetSessionByID(sessionID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid session id")
 	}

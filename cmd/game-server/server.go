@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/bstchow/go-chess-server/internal/api"
-	"github.com/bstchow/go-chess-server/internal/database"
 	"github.com/bstchow/go-chess-server/internal/env"
+	"github.com/bstchow/go-chess-server/internal/models"
 	"github.com/bstchow/go-chess-server/pkg/agent"
 	"github.com/bstchow/go-chess-server/pkg/logging"
 
@@ -16,9 +16,8 @@ func main() {
 	}
 
 	agent := agent.NewAgent()
-	database.InitDB()
-	defer database.CloseDB()
-	// log.Fatal(agent.StartGameServer())
+	models.InitDB()
+	defer models.CloseDB()
 
 	go func() {
 		if err := agent.StartGameServer(); err != nil {

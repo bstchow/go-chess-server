@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bstchow/go-chess-server/internal/auth"
-	"github.com/bstchow/go-chess-server/internal/database"
+	"github.com/bstchow/go-chess-server/internal/models"
 )
 
 /*
@@ -25,7 +25,7 @@ func handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := database.GetUserByUsername(params.Username)
+	user, err := models.GetUserByUsername(params.Username)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Couldn't find user with specified username")
 		return

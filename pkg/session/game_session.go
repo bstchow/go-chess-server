@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/bstchow/go-chess-server/internal/game"
+	"github.com/bstchow/go-chess-server/pkg/game"
 	"github.com/bstchow/go-chess-server/pkg/logging"
 
 	"github.com/gorilla/websocket"
