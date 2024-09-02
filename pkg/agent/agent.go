@@ -97,6 +97,9 @@ func (a *Agent) playerDisconnectHandler(connID string) {
 		zap.String("player_privy_did", playerPrivyDid),
 		zap.String("session_id", sessionID),
 	)
+
+	// TODO: Auto-resign disconnected player and persist game session to DB
+	//       Need to expose session data from session package
 }
 
 /*

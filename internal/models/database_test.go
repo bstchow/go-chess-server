@@ -19,13 +19,13 @@ func TestUser(t *testing.T) {
 	}
 	fmt.Println(newUser)
 
-	user, err := GetUserByPrivyDID(newUser.PrivyDID)
+	user, err := GetUserByPrivyDid(newUser.PrivyDid)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	if user.PrivyDID != newUser.PrivyDID {
-		t.Errorf("get user: got %v, want %v", user.PrivyDID, newUser.PrivyDID)
+	if user.PrivyDid != newUser.PrivyDid {
+		t.Errorf("get user: got %v, want %v", user.PrivyDid, newUser.PrivyDid)
 		return
 	}
 	fmt.Println(user)

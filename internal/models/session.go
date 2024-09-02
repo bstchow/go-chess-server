@@ -65,7 +65,7 @@ func GetSessionsByPlayerID(playerID string) ([]Session, error) {
 	return sessions, nil
 }
 
-func GetSessionsByPlayerPrivyDID(playerPrivyDid string) (sessions []Session, err error) {
+func GetSessionsByPlayerPrivyDid(playerPrivyDid string) (sessions []Session, err error) {
 	result := gormDbWrapper.Joins("JOIN users ON users.privy_did = sessions.player1_id OR users.privy_did = sessions.player2_id").Where("users.privy_did = ?", playerPrivyDid).Find(&sessions)
 	if err = result.Error; err != nil {
 		return nil, err

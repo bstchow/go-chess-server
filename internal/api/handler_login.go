@@ -48,6 +48,6 @@ func handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, userResponse{
-		PlayerPrivyDID: user.PrivyDID,
+		PlayerPrivyDid: user.PrivyDid,
 	})
 }

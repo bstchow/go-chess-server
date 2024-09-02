@@ -7,7 +7,7 @@ import (
 )
 
 type userResponse struct {
-	PlayerPrivyDID string `json:"player_privy_did"`
+	PlayerPrivyDid string `json:"player_privy_did"`
 }
 
 func respondWithError(w http.ResponseWriter, code int, msg string) {
