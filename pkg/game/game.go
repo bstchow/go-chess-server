@@ -381,6 +381,21 @@ func (g *Game) updateBoard(move *move) {
 	}
 }
 
+func (g *Game) WhiteResign() error {
+	if !g.IsOver() {
+		g.status = blackResign
+	}
+	return nil
+}
+
+func (g *Game) BlackResign() error {
+	if !g.IsOver() {
+		g.status = blackResign
+	}
+
+	return nil
+}
+
 func (g *Game) MakeMove(playerId, startPos, endPos string) error {
 	// check correct turn for move made by player with given id
 	if !g.correctTurn(playerId) {

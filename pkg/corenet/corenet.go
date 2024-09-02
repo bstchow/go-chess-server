@@ -24,9 +24,9 @@ type Message struct {
 }
 
 func NewWebSocketServer() *WebSocketServer {
-	Port := env.GetEnv("WS_PORT")
+	port := env.GetEnv("WS_PORT")
 	return &WebSocketServer{
-		address: "0.0.0.0:" + Port,
+		address: "0.0.0.0:" + port,
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,

@@ -7,8 +7,7 @@ import (
 )
 
 type userResponse struct {
-	PlayerID string `json:"player_id"`
-	Username string `json:"username"`
+	PlayerPrivyDID string `json:"player_privy_did"`
 }
 
 func respondWithError(w http.ResponseWriter, code int, msg string) {

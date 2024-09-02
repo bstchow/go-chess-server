@@ -46,9 +46,9 @@ This includes saving the session to the database, close the session
 and remove session from tracking of Matcher
 */
 func (a *Agent) handleSessionGameOver(s *session.GameSession, sessionID string) {
-	playerIDs := make([]string, 0, 2)
+	playerPrivyDids := make([]string, 0, 2)
 	for id, player := range s.Players {
-		playerIDs = append(playerIDs, id)
+		playerPrivyDids = append(playerPrivyDids, id)
 		player.Conn.WriteJSON(struct {
 			Type string            `json:"type"`
 			Data map[string]string `json:"data"`
@@ -61,31 +61,31 @@ func (a *Agent) handleSessionGameOver(s *session.GameSession, sessionID string) 
 		player.Conn.Close()
 	}
 	gameMoves := s.Game.GetAllMoves()
-	if _, err := models.InsertSession(sessionID, playerIDs[0], playerIDs[1], gameMoves); err != nil {
+	if _, err := models.InsertSession(sessionID, playerPrivyDids[0], playerPrivyDids[1], gameMoves); err != nil {
 		logging.Error("coulnd't save game", zap.Error(err))
 	}
 	session.CloseSession(sessionID)
-	a.matcher.RemoveSession(playerIDs[0], playerIDs[1])
+	a.matcher.RemoveSession(playerPrivyDids[0], playerPrivyDids[1])
 }
 
 /*
 Handler for when a user connection closes
 */
 func (a *Agent) playerDisconnectHandler(connID string) {
-	playerID, ok := a.matcher.ConnMap[connID]
+	playerPrivyDid, ok := a.matcher.ConnMap[connID]
 	if !ok {
 		return
 	}
 
-	sessionID, exists := a.matcher.SessionExists(playerID)
+	sessionID, exists := a.matcher.SessionExists(playerPrivyDid)
 	if !exists {
 		return
 	}
 
-	err := session.PlayerLeave(sessionID, playerID)
+	err := session.PlayerLeave(sessionID, playerPrivyDid)
 	if err != nil {
 		logging.Warn("player disconnected error",
-			zap.String("player_id", playerID),
+			zap.String("player_privy_did", playerPrivyDid),
 			zap.String("session_id", sessionID),
 			zap.Error(err),
 		)
@@ -94,14 +94,15 @@ func (a *Agent) playerDisconnectHandler(connID string) {
 	delete(a.matcher.ConnMap, connID)
 
 	logging.Info("player disconnected",
-		zap.String("player_id", playerID),
+		zap.String("player_privy_did", playerPrivyDid),
 		zap.String("session_id", sessionID),
 	)
 }
 
 /*
-Handler for when user socket sends a message
-*/
+* Handler for when user socket sends a message
+* TODO/SPIKE: Should we add explicit resignation message? Or is that a type of move? Currently, only supported by closing ws connection.
+ */
 func (a *Agent) handleWebSocketMessage(conn *websocket.Conn, message *corenet.Message, connID *string) {
 	type errorResponse struct {
 		Type  string `json:"type"`
@@ -109,17 +110,17 @@ func (a *Agent) handleWebSocketMessage(conn *websocket.Conn, message *corenet.Me
 	}
 	switch message.Action {
 	case "matching":
-		playerID, ok := message.Data["player_id"].(string)
+		playerPrivyDid, ok := message.Data["player_privy_did"].(string)
 		if ok {
 			*connID = utils.GenerateUUID()
 			logging.Info("attempt matchmaking",
 				zap.String("status", "queued"),
-				zap.String("player_id", playerID),
+				zap.String("player_privy_did", playerPrivyDid),
 				zap.String("remote_address", conn.RemoteAddr().String()),
 			)
 			a.matcher.EnterQueue(&session.Player{
 				Conn: conn,
-				ID:   playerID,
+				ID:   playerPrivyDid,
 			}, *connID)
 		} else {
 			logging.Info("attempt matchmaking",
@@ -133,18 +134,18 @@ func (a *Agent) handleWebSocketMessage(conn *websocket.Conn, message *corenet.Me
 			})
 		}
 	case "move":
-		playerID, playerOK := message.Data["player_id"].(string)
+		playerPrivyDid, playerOK := message.Data["player_privy_did"].(string)
 		sessionID, sessionOK := message.Data["session_id"].(string)
 		move, moveOK := message.Data["move"].(string)
 		if playerOK && sessionOK && moveOK {
 			logging.Info("attempt making move",
 				zap.String("status", "processing"),
-				zap.String("player_id", playerID),
+				zap.String("player_privy_did", playerPrivyDid),
 				zap.String("session_id", sessionID),
 				zap.String("move", move),
 				zap.String("remote_address", conn.RemoteAddr().String()),
 			)
-			session.ProcessMove(sessionID, playerID, move)
+			session.ProcessMove(sessionID, playerPrivyDid, move)
 		} else {
 			logging.Info("attempt making move",
 				zap.String("status", "rejected"),

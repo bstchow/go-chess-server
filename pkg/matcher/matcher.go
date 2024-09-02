@@ -84,9 +84,9 @@ func (m *Matcher) EnterQueue(player *session.Player, connID string) {
 Matcher pushes player out of the matching queue after a timeout if there aren't no matches available.
 */
 func (m *Matcher) leaveQueueIfTimeout(player *session.Player, connID string) {
-	timeout_i, _ := strconv.Atoi(env.GetEnv("MATCHING_TIMEOUT"))
-	Timeout := time.Duration(timeout_i) * time.Second
-	time.Sleep(Timeout)
+	timeoutI, _ := strconv.Atoi(env.GetEnv("MATCHING_TIMEOUT"))
+	timeout := time.Duration(timeoutI) * time.Second
+	time.Sleep(timeout)
 	if player == nil {
 		return
 	}

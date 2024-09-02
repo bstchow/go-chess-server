@@ -16,7 +16,6 @@ type Session struct {
 	Moves     []string `json:"moves" gorm:"type:text[]"`
 }
 
-
 func GetSessionByID(sessionID string) (Session, error) {
 	var session Session
 	query := `SELECT session_id, player1_id, player2_id, moves FROM sessions WHERE session_id = $1`
@@ -60,6 +59,15 @@ func GetSessionsByPlayerID(playerID string) ([]Session, error) {
 	}
 
 	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return sessions, nil
+}
+
+func GetSessionsByPlayerPrivyDID(playerPrivyDid string) (sessions []Session, err error) {
+	result := gormDbWrapper.Joins("JOIN users ON users.privy_did = sessions.player1_id OR users.privy_did = sessions.player2_id").Where("users.privy_did = ?", playerPrivyDid).Find(&sessions)
+	if err = result.Error; err != nil {
 		return nil, err
 	}
 

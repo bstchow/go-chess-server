@@ -1,51 +1,31 @@
 package models
 
 import (
-	"errors"
-
-	"github.com/bstchow/go-chess-server/pkg/utils"
 	"gorm.io/gorm"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 // TODO: Migrate to using GORM for all database interactions.
 type User struct {
 	gorm.Model
-	PlayerID string `json:"player_id" gorm:"unique"`
-	Username string `json:"username" gorm:"unique"`
-	Password string `json:"password"`
+	PrivyDID string `json:"privy_did" gorm:"uniqueIndex"`
 }
 
-func GetUserByUsername(username string) (User, error) {
-	user := User{}
-	query := "SELECT player_id, username, password FROM users WHERE username = $1"
-	if db == nil {
-		return User{}, errors.New("db nil")
+func GetUserByPrivyDID(privyDid string) (user User, err error) {
+	user = User{}
+	result := gormDbWrapper.First(&user, User{PrivyDID: privyDid})
+	if err = result.Error; err != nil {
+		return user, err
 	}
-	row := db.QueryRow(query, username)
-	err := row.Scan(&user.PlayerID, &user.Username, &user.Password)
-	return user, err
+
+	return user, nil
 }
 
-func CreateUser(username, password string) (User, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	if err != nil {
-		return User{}, err
-	}
-	user := User{
-		PlayerID: utils.GenerateUUID(),
-		Username: username,
-		Password: string(hashedPassword),
+func FindOrCreateUser(privyDid string) (user User, err error) {
+	user = User{}
+	result := gormDbWrapper.FirstOrCreate(&user, User{PrivyDID: privyDid})
+	if err = result.Error; err != nil {
+		return user, err
 	}
 
-	query := `
-        INSERT INTO users (player_id, username, password)
-        VALUES ($1, $2, $3)
-    `
-	_, err = db.Exec(query, user.PlayerID, user.Username, user.Password)
-	if err != nil {
-		return User{}, err
-	}
 	return user, nil
 }

@@ -12,20 +12,20 @@ func TestUser(t *testing.T) {
 		return
 	}
 
-	newUser, err := CreateUser("tester2", "password")
+	newUser, err := FindOrCreateUser("tester2")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	fmt.Println(newUser)
 
-	user, err := GetUserByUsername(newUser.Username)
+	user, err := GetUserByPrivyDID(newUser.PrivyDID)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	if user.PlayerID != newUser.PlayerID {
-		t.Errorf("get user: got %v, want %v", user.PlayerID, newUser.PlayerID)
+	if user.PrivyDID != newUser.PrivyDID {
+		t.Errorf("get user: got %v, want %v", user.PrivyDID, newUser.PrivyDID)
 		return
 	}
 	fmt.Println(user)

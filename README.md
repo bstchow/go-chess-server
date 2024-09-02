@@ -50,7 +50,7 @@ After login, user can now join a match by sending matching request
 {
     "action": "matching",
     "data": {
-        "playerId": "12345"
+        "playerPrivyDid": "12345"
     }
 }
 ```
@@ -93,7 +93,7 @@ In a match, users can send move request with
 {
     "action": "move",
     "data": {
-        "playerId": "12345",
+        "playerPrivyDid": "12345",
         "sessionId": "1719199808062498696",
         "move": "e2-e4"
     }

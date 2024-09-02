@@ -156,7 +156,7 @@ func ProcessMove(sessionID, playerID, move string) {
 		if parseErr != nil {
 			logging.Warn("invalid move",
 				zap.String("session_id", sessionID),
-				zap.String("player_id", playerID),
+				zap.String("player_privy_did", playerID),
 				zap.String("move", move),
 				zap.String("error", parseErr.Error()),
 			)
@@ -174,7 +174,7 @@ func ProcessMove(sessionID, playerID, move string) {
 		if err != nil {
 			logging.Warn("invalid move",
 				zap.String("session_id", sessionID),
-				zap.String("player_id", playerID),
+				zap.String("player_privy_did", playerID),
 				zap.String("move", move),
 				zap.String("error", err.Error()),
 			)
@@ -190,7 +190,7 @@ func ProcessMove(sessionID, playerID, move string) {
 
 		logging.Info("valid move",
 			zap.String("session_id", sessionID),
-			zap.String("player_id", playerID),
+			zap.String("player_privy_did", playerID),
 			zap.String("move", move),
 		)
 
@@ -218,7 +218,7 @@ func ProcessMove(sessionID, playerID, move string) {
 				Type:      "session",
 				GameState: gameState,
 			}); err != nil {
-				logging.Error("couldn't notify player ", zap.String("player_id", playerID))
+				logging.Error("couldn't notify player ", zap.String("player_privy_did", playerID))
 			}
 		}
 

@@ -12,15 +12,17 @@ type EnvValue struct {
 }
 
 var EXPECTED_ENV = map[string](EnvValue){
-	"WS_PORT":           {"int", "7201"},
-	"REST_PORT":         {"int", "7202"},
-	"ADMIN_PASSWORD":    {"string", "123"},
-	"MATCHING_TIMEOUT":  {"int", "3600"}, // 1 Hour timeout for matchmaking
-	"DATABASE_USER":     {"string", "postgres"},
-	"DATABASE_PASSWORD": {"string", "postgres"},
-	"DATABASE_HOST":     {"string", "localhost"},
-	"DATABASE_NAME":     {"string", "chesscaster"},
-	"SSL_MODE":          {"string", "disable"},
+	"WS_PORT":                {"int", "7201"},
+	"REST_PORT":              {"int", "7202"},
+	"ADMIN_PASSWORD":         {"string", "123"},
+	"MATCHING_TIMEOUT":       {"int", "3600"}, // 1 Hour timeout for matchmaking
+	"DATABASE_USER":          {"string", "postgres"},
+	"DATABASE_PASSWORD":      {"string", "postgres"},
+	"DATABASE_HOST":          {"string", "localhost"},
+	"DATABASE_NAME":          {"string", "chesscaster"},
+	"SSL_MODE":               {"string", "disable"},
+	"PRIVY_VERIFICATION_KEY": {"string", "insert-your-privy-verification-key"},
+	"PRIVY_APP_ID":           {"string", "insert-your-privy-app-id"},
 }
 
 // GetEnv finds an env variable or the given fallback.
