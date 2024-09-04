@@ -1,10 +1,12 @@
 package agent
 
 import (
+	"github.com/bstchow/go-chess-server/internal/env"
 	"github.com/bstchow/go-chess-server/internal/models"
 	"github.com/bstchow/go-chess-server/pkg/corenet"
 	"github.com/bstchow/go-chess-server/pkg/logging"
 	"github.com/bstchow/go-chess-server/pkg/matcher"
+	"github.com/bstchow/go-chess-server/pkg/privyauth"
 	"github.com/bstchow/go-chess-server/pkg/session"
 	"github.com/bstchow/go-chess-server/pkg/utils"
 
@@ -111,9 +113,30 @@ func (a *Agent) handleWebSocketMessage(conn *websocket.Conn, message *corenet.Me
 		Type  string `json:"type"`
 		Error string `json:"error"`
 	}
+
+	privyJwtToken, ok := message.Data["privy_jwt_token"].(string)
+	var playerPrivyDid string
+	if env.GetEnv("VALIDATE_PRIVY_JWT") == "true" {
+		privyClaims, privyAuthErr := privyauth.AppValidateToken(privyJwtToken)
+		if privyAuthErr != nil {
+			logging.Info("attempt matchmaking",
+				zap.String("status", "rejected"),
+				zap.String("error", privyAuthErr.Error()),
+				zap.String("remote_address", conn.RemoteAddr().String()),
+			)
+			conn.WriteJSON(errorResponse{
+				Type:  "error",
+				Error: privyAuthErr.Error(),
+			})
+			return
+		}
+		playerPrivyDid = privyClaims.UserId
+	} else {
+		playerPrivyDid = privyJwtToken
+	}
+
 	switch message.Action {
 	case "matching":
-		playerPrivyDid, ok := message.Data["player_privy_did"].(string)
 		if ok {
 			*connID = utils.GenerateUUID()
 			logging.Info("attempt matchmaking",
@@ -137,10 +160,9 @@ func (a *Agent) handleWebSocketMessage(conn *websocket.Conn, message *corenet.Me
 			})
 		}
 	case "move":
-		playerPrivyDid, playerOK := message.Data["player_privy_did"].(string)
 		sessionID, sessionOK := message.Data["session_id"].(string)
 		move, moveOK := message.Data["move"].(string)
-		if playerOK && sessionOK && moveOK {
+		if sessionOK && moveOK {
 			logging.Info("attempt making move",
 				zap.String("status", "processing"),
 				zap.String("player_privy_did", playerPrivyDid),

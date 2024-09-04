@@ -23,6 +23,7 @@ var EXPECTED_ENV = map[string](EnvValue){
 	"SSL_MODE":               {"string", "disable"},
 	"PRIVY_VERIFICATION_KEY": {"string", "insert-your-privy-verification-key"},
 	"PRIVY_APP_ID":           {"string", "insert-your-privy-app-id"},
+	"VALIDATE_PRIVY_JWT":     {"string", "false"},
 }
 
 // GetEnv finds an env variable or the given fallback.

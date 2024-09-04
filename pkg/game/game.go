@@ -56,6 +56,7 @@ func (g *Game) GetBoard() [8][8]string {
 
 	return boxes
 }
+	
 
 func (g *Game) GetStatus() string {
 	return string(g.status)

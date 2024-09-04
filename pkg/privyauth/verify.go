@@ -47,17 +47,17 @@ func ParseKeyFunc(verificationKey string) func(token *jwt.Token) (interface{}, e
 	}
 }
 
-func AppValidateToken(accessToken string) (privyClaims *PrivyClaims, err error) {
+func AppValidateToken(jwtToken string) (privyClaims *PrivyClaims, err error) {
 	appId := env.GetEnv("PRIVY_APP_ID")
 	verificationKey := env.GetEnv("PRIVY_VERIFICATION_KEY")
-	return ValidateToken(accessToken, appId, verificationKey)
+	return ValidateToken(jwtToken, appId, verificationKey)
 }
 
-func ValidateToken(accessToken string, appId string, verificationKey string) (privyClaims *PrivyClaims, err error) {
+func ValidateToken(jwtToken string, appId string, verificationKey string) (privyClaims *PrivyClaims, err error) {
 	// This method will be used to load the verification key in the required format later
 
 	// Check the JWT signature and decode claims
-	token, err := jwt.ParseWithClaims(accessToken, &PrivyClaims{}, ParseKeyFunc(verificationKey))
+	token, err := jwt.ParseWithClaims(jwtToken, &PrivyClaims{}, ParseKeyFunc(verificationKey))
 	if err != nil {
 		fmt.Println("JWT signature is invalid.")
 		return nil, err

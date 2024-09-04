@@ -6,7 +6,6 @@ import (
 
 	"github.com/bstchow/go-chess-server/internal/env"
 	"github.com/bstchow/go-chess-server/pkg/privyauth"
-	"github.com/google/uuid"
 
 	"github.com/bstchow/go-chess-server/internal/models"
 )
@@ -36,8 +35,7 @@ func handlerLogin(w http.ResponseWriter, r *http.Request) {
 		}
 		userPrivyDid = claims.UserId
 	} else {
-		// Just some random garbo if testing
-		userPrivyDid = uuid.New().String()
+		userPrivyDid = params.PrivyJWTToken
 	}
 
 	user, err := models.FindOrCreateUser(userPrivyDid)
