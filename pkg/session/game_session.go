@@ -2,30 +2,25 @@ package session
 
 import (
 	"errors"
-	"log"
 	"sync"
 
-	"github.com/bstchow/go-chess-server/pkg/game"
 	"github.com/bstchow/go-chess-server/pkg/logging"
+	"github.com/notnil/chess"
 
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 )
 
 type GameSession struct {
-	Players map[string]*Player
-	Game    *game.Game
-}
-
-type GameState struct {
-	Status      string       `json:"status"`
-	Board       [8][8]string `json:"board"`
-	IsWhiteTurn bool         `json:"is_white"`
+	WhitePlayer *Player
+	BlackPlayer *Player
+	Game        *chess.Game
 }
 
 type SessionResponse struct {
-	Type      string    `json:"type"`
-	GameState GameState `json:"game_state"`
+	Type        string      `json:"type"`
+	GameState   string      `json:"game_state"`
+	PlayerState PlayerState `json:"player_state"`
 }
 
 type PlayerState struct {
@@ -36,19 +31,15 @@ var gameSessions = make(map[string]*GameSession)
 var mu sync.RWMutex
 var gameOverHandler = func(session *GameSession, sessionID string) {
 	CloseSession(sessionID)
-	for _, player := range session.Players {
-		player.Conn.Close()
-	}
+	session.WhitePlayer.Conn.Close()
+	session.BlackPlayer.Conn.Close()
 }
 
-func InitSession(sessionID string, player1, player2 *Player) {
-	playersMap := map[string]*Player{
-		player1.ID: player1,
-		player2.ID: player2,
-	}
+func InitSession(sessionID string, whitePlayer *Player, blackPlayer *Player) {
 	gameSessions[sessionID] = &GameSession{
-		Players: playersMap,
-		Game:    game.InitGame([2]string{player1.ID, player2.ID}),
+		WhitePlayer: whitePlayer,
+		BlackPlayer: blackPlayer,
+		Game:        chess.NewGame(),
 	}
 }
 
@@ -61,28 +52,40 @@ func CloseSession(sessionID string) {
 func SetGameOverHandler(govHandler func(*GameSession, string)) {
 	gameOverHandler = govHandler
 }
-
 func StartGame(session *GameSession) {
-	for _, player := range session.Players {
+	for _, player := range []*Player{session.WhitePlayer, session.BlackPlayer} {
 		err := player.Conn.WriteMessage(websocket.TextMessage, []byte(`{"type":"start"}`))
 		if err != nil {
-			log.Println("Error sending start message:", err)
+			logging.Error("Error sending start message", zap.Error(err))
 		}
 	}
 }
 
-func GetGameState(sessionID string) (GameState, error) {
+func (session *GameSession) GetPlayers() [2]*Player {
+	return [2]*Player{session.WhitePlayer, session.BlackPlayer}
+}
+
+func (session *GameSession) GetPlayerById(playerID string) (*Player, error) {
+	if session.WhitePlayer.ID == playerID {
+		return session.WhitePlayer, nil
+	} else if session.BlackPlayer.ID == playerID {
+		return session.BlackPlayer, nil
+	}
+	return nil, errors.New("player not in session")
+}
+
+func (session *GameSession) GetPlayerSide(playerID string) (bool, error) {
+	return session.WhitePlayer.ID == playerID, nil
+}
+
+func GetGameFen(sessionID string) (string, error) {
 	mu.RLock()
 	defer mu.RUnlock()
 	session, exists := gameSessions[sessionID]
 	if exists {
-		return GameState{
-			Status:      session.Game.GetStatus(),
-			Board:       session.Game.GetBoard(),
-			IsWhiteTurn: session.Game.GetCurrentTurn(),
-		}, nil
+		return session.Game.FEN(), nil
 	}
-	return GameState{}, errors.New("invalid session id")
+	return "", errors.New("invalid session id")
 }
 
 func GetPlayerState(sessionID, playerID string) (PlayerState, error) {
@@ -90,7 +93,7 @@ func GetPlayerState(sessionID, playerID string) (PlayerState, error) {
 	defer mu.RUnlock()
 	session, exists := gameSessions[sessionID]
 	if exists {
-		isWhiteSide, err := session.Game.GetPlayerSide(playerID)
+		isWhiteSide, err := session.GetPlayerSide(playerID)
 		if err != nil {
 			return PlayerState{}, errors.New("invalid player id")
 		}
@@ -106,43 +109,47 @@ func PlayerInSession(sessionID string, player *Player) bool {
 	defer mu.Unlock()
 	session, exists := gameSessions[sessionID]
 	if exists {
-		if p, ok := session.Players[player.ID]; ok {
-			return p == player
-		}
-		return false
+		_, err := session.GetPlayerById(player.ID)
+		return err != nil
 	}
 	return false
 }
 
-func PlayerJoin(sessionID string, player *Player) error {
+func PlayerRejoinExisting(sessionID string, player *Player) error {
 	mu.Lock()
 	defer mu.Unlock()
 	session, exists := gameSessions[sessionID]
 	if exists {
-		if p, ok := session.Players[player.ID]; ok {
+		if p, err := session.GetPlayerById(player.ID); err == nil {
 			if p != nil {
-				return errors.New("player still in session")
+				p.Conn = player.Conn
+				logging.Info("Player rejoined session", zap.String("sessionID", sessionID))
+				return nil
 			}
-			session.Players[player.ID] = player
-			return nil
 		}
 		return errors.New("player id not in the session")
 	}
 	return errors.New("invalid session id")
 }
 
-func PlayerLeave(sessionID, playerID string) error {
+func PlayerDisconnect(sessionID, playerID string) error {
 	mu.Lock()
 	defer mu.Unlock()
 	session, exists := gameSessions[sessionID]
-	if exists {
-		session.Players[playerID] = nil
-		return nil
+	if !exists {
+		return errors.New("invalid session id")
 	}
-	return errors.New("invalid session id")
+
+	player, err := session.GetPlayerById(playerID)
+	if err != nil {
+		return err
+	}
+
+	player.Conn = nil
+	return nil
 }
 
-func ProcessMove(sessionID, playerID, move string) {
+func ProcessMove(sessionID, movingPlayerID, move string) {
 	mu.Lock()
 
 	type errorResponse struct {
@@ -152,33 +159,29 @@ func ProcessMove(sessionID, playerID, move string) {
 
 	session, exists := gameSessions[sessionID]
 	if exists {
-		pos, parseErr := game.ParseMove(move)
-		if parseErr != nil {
-			logging.Warn("invalid move",
+
+		if (session.Game.Position().Turn() == chess.White && session.WhitePlayer.ID != movingPlayerID) ||
+			(session.Game.Position().Turn() == chess.Black && session.BlackPlayer.ID != movingPlayerID) {
+			logging.Warn("Wrong player moving",
 				zap.String("session_id", sessionID),
-				zap.String("player_privy_did", playerID),
+				zap.String("player_privy_did", movingPlayerID),
 				zap.String("move", move),
-				zap.String("error", parseErr.Error()),
 			)
-			if err := session.Players[playerID].Conn.WriteJSON(errorResponse{
-				Type:  "error",
-				Error: "invalid move: " + parseErr.Error(),
-			}); err != nil {
-				logging.Info("ws write", zap.Error(err))
-			}
 			mu.Unlock()
 			return
 		}
 
-		err := session.Game.MakeMove(playerID, pos[0], pos[1])
+		err := session.Game.MoveStr(move)
 		if err != nil {
 			logging.Warn("invalid move",
 				zap.String("session_id", sessionID),
-				zap.String("player_privy_did", playerID),
+				zap.String("player_privy_did", movingPlayerID),
 				zap.String("move", move),
 				zap.String("error", err.Error()),
 			)
-			if err := session.Players[playerID].Conn.WriteJSON(errorResponse{
+			player, err := session.GetPlayerById(movingPlayerID)
+
+			if err := player.Conn.WriteJSON(errorResponse{
 				Type:  "error",
 				Error: "invalid move: " + err.Error(),
 			}); err != nil {
@@ -190,15 +193,15 @@ func ProcessMove(sessionID, playerID, move string) {
 
 		logging.Info("valid move",
 			zap.String("session_id", sessionID),
-			zap.String("player_privy_did", playerID),
+			zap.String("player_privy_did", movingPlayerID),
 			zap.String("move", move),
 		)
 
 		mu.Unlock()
 
 		// notify players about the new board state
-		for _, player := range session.Players {
-			gameState, err := GetGameState(sessionID)
+		for _, player := range session.GetPlayers() {
+			gameFen, err := GetGameFen(sessionID)
 			if err != nil {
 				logging.Error("invalid session id for game state")
 				if err := player.Conn.WriteJSON(errorResponse{
@@ -214,15 +217,24 @@ func ProcessMove(sessionID, playerID, move string) {
 				continue
 			}
 
+			isWhiteSide, err := session.GetPlayerSide(player.ID)
+			if err != nil {
+				logging.Error("invalid player id")
+				continue
+			}
+
 			if err := player.Conn.WriteJSON(SessionResponse{
 				Type:      "session",
-				GameState: gameState,
+				GameState: gameFen,
+				PlayerState: PlayerState{
+					IsWhiteSide: isWhiteSide,
+				},
 			}); err != nil {
-				logging.Error("couldn't notify player ", zap.String("player_privy_did", playerID))
+				logging.Error("couldn't notify player ", zap.String("player_privy_did", movingPlayerID))
 			}
 		}
 
-		if session.Game.IsOver() {
+		if session.Game.Outcome() != chess.NoOutcome {
 			gameOverHandler(session, sessionID)
 		}
 	}

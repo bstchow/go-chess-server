@@ -48,26 +48,28 @@ This includes saving the session to the database, close the session
 and remove session from tracking of Matcher
 */
 func (a *Agent) handleSessionGameOver(s *session.GameSession, sessionID string) {
-	playerPrivyDids := make([]string, 0, 2)
-	for id, player := range s.Players {
-		playerPrivyDids = append(playerPrivyDids, id)
+	players := s.GetPlayers()
+	for _, player := range players {
 		player.Conn.WriteJSON(struct {
 			Type string            `json:"type"`
 			Data map[string]string `json:"data"`
 		}{
 			Type: "endgame",
 			Data: map[string]string{
-				"game_state": s.Game.GetStatus(),
+				"game_outcome": s.Game.Outcome().String(),
 			},
 		})
 		player.Conn.Close()
 	}
-	gameMoves := s.Game.GetAllMoves()
-	if _, err := models.InsertSession(sessionID, playerPrivyDids[0], playerPrivyDids[1], gameMoves); err != nil {
+	gameMoves := make([]string, 0, len(s.Game.Moves()))
+	for _, move := range s.Game.Moves() {
+		gameMoves = append(gameMoves, move.String())
+	}
+	if _, err := models.InsertSession(sessionID, players[0].ID, players[1].ID, gameMoves); err != nil {
 		logging.Error("coulnd't save game", zap.Error(err))
 	}
 	session.CloseSession(sessionID)
-	a.matcher.RemoveSession(playerPrivyDids[0], playerPrivyDids[1])
+	a.matcher.RemoveSession(players[0].ID, players[1].ID)
 }
 
 /*
@@ -84,7 +86,7 @@ func (a *Agent) playerDisconnectHandler(connID string) {
 		return
 	}
 
-	err := session.PlayerLeave(sessionID, playerPrivyDid)
+	err := session.PlayerDisconnect(sessionID, playerPrivyDid)
 	if err != nil {
 		logging.Warn("player disconnected error",
 			zap.String("player_privy_did", playerPrivyDid),
@@ -100,8 +102,7 @@ func (a *Agent) playerDisconnectHandler(connID string) {
 		zap.String("session_id", sessionID),
 	)
 
-	// TODO: Auto-resign disconnected player and persist game session to DB
-	//       Need to expose session data from session package
+	// TODO: Auto-resign disconnected player after timeout
 }
 
 /*

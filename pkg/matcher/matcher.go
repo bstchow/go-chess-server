@@ -26,7 +26,7 @@ type Matcher struct {
 type matchResponse struct {
 	Type        string              `json:"type"`
 	SessionID   string              `json:"session_id"`
-	GameState   session.GameState   `json:"game_state"`
+	GameState   string              `json:"game_state"`
 	PlayerState session.PlayerState `json:"player_state"`
 }
 
@@ -137,7 +137,7 @@ func (m *Matcher) findMatch() {
 }
 
 func (m *Matcher) rejoinMatch(sessionID string, player *session.Player) {
-	if err := session.PlayerJoin(sessionID, player); err != nil {
+	if err := session.PlayerRejoinExisting(sessionID, player); err != nil {
 		player.Conn.WriteJSON(struct {
 			Type  string `json:"type"`
 			Error string `json:"error"`
@@ -151,7 +151,7 @@ func (m *Matcher) rejoinMatch(sessionID string, player *session.Player) {
 }
 
 func notifyMatchingResult(sessionID string, player *session.Player) {
-	gameState, err := session.GetGameState(sessionID)
+	gameState, err := session.GetGameFen(sessionID)
 	if err != nil {
 		player.Conn.WriteJSON(struct {
 			Type  string `json:"type"`
