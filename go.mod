@@ -3,15 +3,17 @@ module github.com/bstchow/go-chess-server
 go 1.22.3
 
 require (
+	github.com/go-chi/chi/v5 v5.1.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
+	github.com/notnil/chess v1.9.0
 	go.uber.org/zap v1.27.0
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.11
 )
 
 require (
-	github.com/notnil/chess v1.9.0 // indirect
+	github.com/go-chi/cors v1.2.1 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 )
 

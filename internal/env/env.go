@@ -12,16 +12,22 @@ type EnvValue struct {
 }
 
 var EXPECTED_ENV = map[string](EnvValue){
-	"WS_PORT":           {"int", "7201"},
-	"REST_PORT":         {"int", "7202"},
-	"ADMIN_PASSWORD":    {"string", "123"},
-	"MATCHING_TIMEOUT":  {"int", "3600"}, // 1 Hour timeout for matchmaking
-	"DATABASE_USER":     {"string", "postgres"},
-	"DATABASE_PASSWORD": {"string", "postgres"},
-	"DATABASE_HOST":     {"string", "localhost"},
-	"DATABASE_NAME":     {"string", "chesscaster"},
-	"SSL_MODE":          {"string", "disable"},
-	"VALIDATE_JWT":      {"string", "false"},
+	"ENV":                    {"string", "production"},
+	"WS_PORT":                {"int", "7201"},
+	"REST_PORT":              {"int", "7202"},
+	"ADMIN_PASSWORD":         {"string", "123"},
+	"MATCHING_TIMEOUT":       {"int", "3600"}, // 1 Hour timeout for matchmaking
+	"DATABASE_USER":          {"string", "postgres"},
+	"DATABASE_PASSWORD":      {"string", "postgres"},
+	"DATABASE_HOST":          {"string", "localhost"},
+	"DATABASE_NAME":          {"string", "chesscaster"},
+	"SSL_MODE":               {"string", "disable"},
+	"VALIDATE_FRAME_REQUEST": {"string", "true"},
+	"VALIDATE_PRIVY_JWT":     {"string", "true"},
+	"VALIDATE_JWT":           {"string", "true"},
+	"JWT_ISSUER":             {"string", "localhost"},
+	"SERVER_JWT_PRIVATE_KEY": {"string", ""}, // No default, must be defined!
+	"SERVER_JWT_PUBLIC_KEY":  {"string", ""}, // No default, must be defined!
 }
 
 // GetEnv finds an env variable or the given fallback.

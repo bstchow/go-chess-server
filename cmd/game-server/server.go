@@ -27,7 +27,7 @@ func main() {
 
 	go func() {
 		RESTPort := env.GetEnv("REST_PORT")
-		if err := api.StartRESTServer(RESTPort); err != nil {
+		if err := api.StartRESTServer(RESTPort, agent); err != nil {
 			logging.Fatal("rest server failed to start", zap.Error(err))
 		}
 	}()

@@ -4,15 +4,14 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: Migrate to using GORM for all database interactions.
 type User struct {
 	gorm.Model
-	PrivyDid string `json:"privy_did" gorm:"uniqueIndex"`
+	Id string `json:"id" gorm:"uniqueIndex"`
 }
 
-func GetUserByPrivyDid(privyDid string) (user User, err error) {
+func GetUserById(id string) (user User, err error) {
 	user = User{}
-	result := gormDbWrapper.First(&user, User{PrivyDid: privyDid})
+	result := gormDbWrapper.First(&user, User{Id: id})
 	if err = result.Error; err != nil {
 		return user, err
 	}
@@ -20,9 +19,9 @@ func GetUserByPrivyDid(privyDid string) (user User, err error) {
 	return user, nil
 }
 
-func FindOrCreateUser(privyDid string) (user User, err error) {
+func FindOrCreateUser(id string) (user User, err error) {
 	user = User{}
-	result := gormDbWrapper.FirstOrCreate(&user, User{PrivyDid: privyDid})
+	result := gormDbWrapper.FirstOrCreate(&user, User{Id: id})
 	if err = result.Error; err != nil {
 		return user, err
 	}

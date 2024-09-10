@@ -6,10 +6,6 @@ import (
 	"net/http"
 )
 
-type userResponse struct {
-	PlayerPrivyDid string `json:"player_privy_did"`
-}
-
 func respondWithError(w http.ResponseWriter, code int, msg string) {
 	if code > 499 {
 		log.Printf("Responding with 5XX error: %s", msg)

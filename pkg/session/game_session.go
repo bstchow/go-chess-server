@@ -164,7 +164,7 @@ func ProcessMove(sessionID, movingPlayerID, move string) {
 			(session.Game.Position().Turn() == chess.Black && session.BlackPlayer.ID != movingPlayerID) {
 			logging.Warn("Wrong player moving",
 				zap.String("session_id", sessionID),
-				zap.String("player_privy_did", movingPlayerID),
+				zap.String("id", movingPlayerID),
 				zap.String("move", move),
 			)
 			mu.Unlock()
@@ -175,7 +175,7 @@ func ProcessMove(sessionID, movingPlayerID, move string) {
 		if err != nil {
 			logging.Warn("invalid move",
 				zap.String("session_id", sessionID),
-				zap.String("player_privy_did", movingPlayerID),
+				zap.String("id", movingPlayerID),
 				zap.String("move", move),
 				zap.String("error", err.Error()),
 			)
@@ -193,7 +193,7 @@ func ProcessMove(sessionID, movingPlayerID, move string) {
 
 		logging.Info("valid move",
 			zap.String("session_id", sessionID),
-			zap.String("player_privy_did", movingPlayerID),
+			zap.String("id", movingPlayerID),
 			zap.String("move", move),
 		)
 
@@ -230,7 +230,7 @@ func ProcessMove(sessionID, movingPlayerID, move string) {
 					IsWhiteSide: isWhiteSide,
 				},
 			}); err != nil {
-				logging.Error("couldn't notify player ", zap.String("player_privy_did", movingPlayerID))
+				logging.Error("couldn't notify player ", zap.String("id", movingPlayerID))
 			}
 		}
 

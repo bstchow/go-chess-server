@@ -1,4 +1,4 @@
-package privyauth
+package auth
 
 import (
 	"errors"
@@ -37,25 +37,13 @@ func (c *PrivyClaims) ValidateApp(AppId string) error {
 	return nil
 }
 
-func ParseKeyFunc(verificationKey string) func(token *jwt.Token) (interface{}, error) {
-	return func(token *jwt.Token) (interface{}, error) {
-		if token.Method.Alg() != "ES256" {
-			return nil, fmt.Errorf("unexpected JWT signing method=%v", token.Header["alg"])
-		}
-		// https://pkg.go.dev/github.com/dgrijalva/jwt-go#ParseECPublicKeyFromPEM
-		return jwt.ParseECPublicKeyFromPEM([]byte(verificationKey))
-	}
-}
-
-func AppValidateToken(jwtToken string) (privyClaims *PrivyClaims, err error) {
+func PrivyAppValidateToken(jwtToken string) (privyClaims *PrivyClaims, err error) {
 	appId := env.GetEnv("PRIVY_APP_ID")
 	verificationKey := env.GetEnv("PRIVY_VERIFICATION_KEY")
-	return ValidateToken(jwtToken, appId, verificationKey)
+	return PrivyValidateToken(jwtToken, appId, verificationKey)
 }
 
-func ValidateToken(jwtToken string, appId string, verificationKey string) (privyClaims *PrivyClaims, err error) {
-	// This method will be used to load the verification key in the required format later
-
+func PrivyValidateToken(jwtToken string, appId string, verificationKey string) (privyClaims *PrivyClaims, err error) {
 	// Check the JWT signature and decode claims
 	token, err := jwt.ParseWithClaims(jwtToken, &PrivyClaims{}, ParseKeyFunc(verificationKey))
 	if err != nil {

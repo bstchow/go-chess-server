@@ -31,7 +31,7 @@ func TestWebSocketServer(t *testing.T) {
 			Message{
 				Action: "matching",
 				Data: map[string]interface{}{
-					"player_privy_did": "42",
+					"id": "42",
 				},
 			},
 			"matching",
@@ -41,9 +41,9 @@ func TestWebSocketServer(t *testing.T) {
 			Message{
 				Action: "move",
 				Data: map[string]interface{}{
-					"session_id":       "42",
-					"player_privy_did": "42",
-					"move":             "e2-e4",
+					"session_id": "42",
+					"id":         "42",
+					"move":       "e2-e4",
 				},
 			},
 			"move",
@@ -88,7 +88,7 @@ func messageHandler(conn *websocket.Conn, message *Message, connID *string) {
 	}
 	switch message.Action {
 	case "matching":
-		_, ok := message.Data["player_privy_did"].(string)
+		_, ok := message.Data["id"].(string)
 		if ok {
 			conn.WriteJSON(*message)
 		} else {
@@ -98,7 +98,7 @@ func messageHandler(conn *websocket.Conn, message *Message, connID *string) {
 			})
 		}
 	case "move":
-		_, playerOK := message.Data["player_privy_did"].(string)
+		_, playerOK := message.Data["id"].(string)
 		_, sessionOK := message.Data["session_id"].(string)
 		_, moveOK := message.Data["move"].(string)
 		if playerOK && sessionOK && moveOK {

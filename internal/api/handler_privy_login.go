@@ -5,15 +5,19 @@ import (
 	"net/http"
 
 	"github.com/bstchow/go-chess-server/internal/env"
-	"github.com/bstchow/go-chess-server/pkg/privyauth"
-
-	"github.com/bstchow/go-chess-server/internal/models"
+	"github.com/bstchow/go-chess-server/internal/id"
+	"github.com/bstchow/go-chess-server/pkg/auth"
 )
+
+type PrivyLoginResponse struct {
+	UserId   string `json:"user_id"`
+	JwtToken string `json:"jwt_token"`
+}
 
 /*
 HTTP Handler for when user access login endpoint
 */
-func handlerLogin(w http.ResponseWriter, r *http.Request) {
+func handlerPrivyLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		PrivyJWTToken string `json:"privy_jwt_token"`
 	}
@@ -28,7 +32,7 @@ func handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	var userPrivyDid string
 	if env.GetEnv("VALIDATE_PRIVY_JWT") == "true" {
-		claims, err := privyauth.AppValidateToken(params.PrivyJWTToken)
+		claims, err := auth.PrivyAppValidateToken(params.PrivyJWTToken)
 		if err != nil {
 			respondWithError(w, http.StatusUnauthorized, "Invalid Privy JWT")
 			return
@@ -38,14 +42,16 @@ func handlerLogin(w http.ResponseWriter, r *http.Request) {
 		userPrivyDid = params.PrivyJWTToken
 	}
 
-	user, err := models.FindOrCreateUser(userPrivyDid)
+	userId := id.ConstructId(auth.PRIVY_DID_USER_ID_SOURCE, userPrivyDid)
+	token, err := auth.CreateServerToken(userId)
 
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't find user")
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create JWT")
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, userResponse{
-		PlayerPrivyDid: user.PrivyDid,
+	respondWithJSON(w, http.StatusOK, PrivyLoginResponse{
+		UserId:   userId,
+		JwtToken: token,
 	})
 }

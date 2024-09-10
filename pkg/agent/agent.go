@@ -1,12 +1,11 @@
 package agent
 
 import (
-	"github.com/bstchow/go-chess-server/internal/env"
 	"github.com/bstchow/go-chess-server/internal/models"
+	"github.com/bstchow/go-chess-server/pkg/auth"
 	"github.com/bstchow/go-chess-server/pkg/corenet"
 	"github.com/bstchow/go-chess-server/pkg/logging"
 	"github.com/bstchow/go-chess-server/pkg/matcher"
-	"github.com/bstchow/go-chess-server/pkg/privyauth"
 	"github.com/bstchow/go-chess-server/pkg/session"
 	"github.com/bstchow/go-chess-server/pkg/utils"
 
@@ -40,6 +39,10 @@ func (a *Agent) StartGameServer() error {
 	}
 
 	return nil
+}
+
+func (a *Agent) GetSessionCount() int {
+	return len(a.matcher.SessionMap)
 }
 
 /*
@@ -76,20 +79,20 @@ func (a *Agent) handleSessionGameOver(s *session.GameSession, sessionID string) 
 Handler for when a user connection closes
 */
 func (a *Agent) playerDisconnectHandler(connID string) {
-	playerPrivyDid, ok := a.matcher.ConnMap[connID]
+	playerId, ok := a.matcher.ConnMap[connID]
 	if !ok {
 		return
 	}
 
-	sessionID, exists := a.matcher.SessionExists(playerPrivyDid)
+	sessionID, exists := a.matcher.SessionExists(playerId)
 	if !exists {
 		return
 	}
 
-	err := session.PlayerDisconnect(sessionID, playerPrivyDid)
+	err := session.PlayerDisconnect(sessionID, playerId)
 	if err != nil {
 		logging.Warn("player disconnected error",
-			zap.String("player_privy_did", playerPrivyDid),
+			zap.String("id", playerId),
 			zap.String("session_id", sessionID),
 			zap.Error(err),
 		)
@@ -98,7 +101,7 @@ func (a *Agent) playerDisconnectHandler(connID string) {
 	delete(a.matcher.ConnMap, connID)
 
 	logging.Info("player disconnected",
-		zap.String("player_privy_did", playerPrivyDid),
+		zap.String("id", playerId),
 		zap.String("session_id", sessionID),
 	)
 
@@ -115,26 +118,22 @@ func (a *Agent) handleWebSocketMessage(conn *websocket.Conn, message *corenet.Me
 		Error string `json:"error"`
 	}
 
-	privyJwtToken, ok := message.Data["privy_jwt_token"].(string)
-	var playerPrivyDid string
-	if env.GetEnv("VALIDATE_PRIVY_JWT") == "true" {
-		privyClaims, privyAuthErr := privyauth.AppValidateToken(privyJwtToken)
-		if privyAuthErr != nil {
-			logging.Info("attempt matchmaking",
-				zap.String("status", "rejected"),
-				zap.String("error", privyAuthErr.Error()),
-				zap.String("remote_address", conn.RemoteAddr().String()),
-			)
-			conn.WriteJSON(errorResponse{
-				Type:  "error",
-				Error: privyAuthErr.Error(),
-			})
-			return
-		}
-		playerPrivyDid = privyClaims.UserId
-	} else {
-		playerPrivyDid = privyJwtToken
+	jwtToken, ok := message.Data["jwt_token"].(string)
+	var playerId string
+	claims, authErr := auth.ValidateServerTokenDefault(jwtToken)
+	if authErr != nil {
+		logging.Info("attempt matchmaking",
+			zap.String("status", "rejected"),
+			zap.String("error", authErr.Error()),
+			zap.String("remote_address", conn.RemoteAddr().String()),
+		)
+		conn.WriteJSON(errorResponse{
+			Type:  "error",
+			Error: authErr.Error(),
+		})
+		return
 	}
+	playerId = claims.UserId
 
 	switch message.Action {
 	case "matching":
@@ -142,12 +141,12 @@ func (a *Agent) handleWebSocketMessage(conn *websocket.Conn, message *corenet.Me
 			*connID = utils.GenerateUUID()
 			logging.Info("attempt matchmaking",
 				zap.String("status", "queued"),
-				zap.String("player_privy_did", playerPrivyDid),
+				zap.String("id", playerId),
 				zap.String("remote_address", conn.RemoteAddr().String()),
 			)
 			a.matcher.EnterQueue(&session.Player{
 				Conn: conn,
-				ID:   playerPrivyDid,
+				ID:   playerId,
 			}, *connID)
 		} else {
 			logging.Info("attempt matchmaking",
@@ -166,12 +165,12 @@ func (a *Agent) handleWebSocketMessage(conn *websocket.Conn, message *corenet.Me
 		if sessionOK && moveOK {
 			logging.Info("attempt making move",
 				zap.String("status", "processing"),
-				zap.String("player_privy_did", playerPrivyDid),
+				zap.String("id", playerId),
 				zap.String("session_id", sessionID),
 				zap.String("move", move),
 				zap.String("remote_address", conn.RemoteAddr().String()),
 			)
-			session.ProcessMove(sessionID, playerPrivyDid, move)
+			session.ProcessMove(sessionID, playerId, move)
 		} else {
 			logging.Info("attempt making move",
 				zap.String("status", "rejected"),
